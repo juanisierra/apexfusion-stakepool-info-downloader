@@ -2,9 +2,45 @@ import https from 'https';
 import { mkConfig, generateCsv, asString } from "export-to-csv";
 import { writeFile } from "node:fs";
 import { Buffer } from "node:buffer";
+import { write } from 'fs';
+import { debug } from 'console';
 
-const csvConfig = mkConfig({ useKeysAsHeaders: true, filename: 'export.csv' });
+const csvConfig = mkConfig({ useKeysAsHeaders: true, filename: 'sposExport' });
 
+const writeCSV = (dataArray) => {
+    // Converts your Array<Object> to a CsvOutput string based on the configs
+    const csv = generateCsv(csvConfig)(dataArray);
+    const filename = `${csvConfig.filename}.csv`;
+    const csvBuffer = new Uint8Array(Buffer.from(asString(csv)));
+
+    // Write the csv file to disk
+    writeFile(filename, csvBuffer, (err) => {
+    if (err) throw err;
+    console.log("file saved: ", filename);
+    });
+};
+
+const getSPODetails = async (spo) => {
+    return new Promise((resolve, reject) => {
+    let data = [];
+    https.get(`https://beta-explorer-api.prime.testnet.apexfusion.org/api/v1/delegations/pool-detail-header/${spo.poolId}`, async res => {
+    res.on('data', d => {
+        data.push(d);
+      });
+      res.on('end', function() {
+        try {
+           data = JSON.parse(Buffer.concat(data).toString());
+        } catch(e) {
+            reject(e);
+        }
+        console.log(data);
+        const { rewardAccounts, ownerAccounts, ...rest } = data; //Fields to remove
+        resolve(rest);
+    });
+    }
+    );
+})
+};
 
 const getSPOsfromAPI = () => {
     const options = {
@@ -15,31 +51,18 @@ const getSPOsfromAPI = () => {
     
     https.get( options, res => {
       let data = [];
-      const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date';
       console.log('Status Code:', res.statusCode);
-      console.log('Date in Response header:', headerDate);
-    
       res.on('data', d => {
         data.push(d);
       });
-      res.on('end', () => {
+      res.on('end', async () => {
         console.log('Response ended: ');
-    
-        const responseData = JSON.parse(Buffer.concat(data).toString());
-        // Converts your Array<Object> to a CsvOutput string based on the configs
-        const csv = generateCsv(csvConfig)(responseData['data']);
-        const filename = `${csvConfig.filename}.csv`;
-        const csvBuffer = new Uint8Array(Buffer.from(asString(csv)));
+        const spoList = JSON.parse(Buffer.concat(data).toString());
 
-        // Write the csv file to disk
-        writeFile(filename, csvBuffer, (err) => {
-        if (err) throw err;
-        console.log("file saved: ", filename);
-        });
-
-        // for(spo of responseData['data']) {
-        // //   console.log(`Got spo with id: ${spo.id}, poolId: ${spo.poolId}, name: ${spo.poolName}, tickerName: ${spo.tickerName}`);
-        // }
+       const spos = await Promise.all(spoList['data'].map(async spo => {
+        return await getSPODetails(spo)
+        }));
+        writeCSV(spos);
       })
     }).on('error', err => {
       console.log('Error: ', err.message);
