@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Download apex fusion SPO data",
   "main": "main.js",
+    "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/juanisierra/apexfusion-stakepool-info-downloader/issues"
   },
-  "homepage": "https://github.com/juanisierra/apexfusion-stakepool-info-downloader#readme"
+  "homepage": "https://github.com/juanisierra/apexfusion-stakepool-info-downloader#readme",
+  "dependencies": {
+    "export-to-csv": "^1.3.0"
+  }
 }
