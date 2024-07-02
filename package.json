@@ -1,0 +1,19 @@
+{
+  "name": "apexfusion-stakepool-info-downloader",
+  "version": "1.0.0",
+  "description": "Download apex fusion SPO data",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juanisierra/apexfusion-stakepool-info-downloader.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/juanisierra/apexfusion-stakepool-info-downloader/issues"
+  },
+  "homepage": "https://github.com/juanisierra/apexfusion-stakepool-info-downloader#readme"
+}
